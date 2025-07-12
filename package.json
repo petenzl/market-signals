@@ -1,15 +1,15 @@
 {
-  "name": "sp500-vix-analyzer",
+  "name": "market-signals",
   "version": "0.1.0",
   "private": true,
   "description": "A React-based web application for analyzing S&P 500 and VIX volatility data with interactive charts and market insights",
-  "homepage": "https://petenzl.github.io/sp500-vix-analyzer",
+  "homepage": "https://petenzl.github.io/market-signals",
   "repository": {
     "type": "git",
-    "url": "https://github.com/petenzl/sp500-vix-analyzer.git"
+    "url": "https://github.com/petenzl/market-signals.git"
   },
   "bugs": {
-    "url": "https://github.com/petenzl/sp500-vix-analyzer/issues"
+    "url": "https://github.com/petenzl/market-signals/issues"
   },
   "engines": {
     "node": ">=16.0.0",
