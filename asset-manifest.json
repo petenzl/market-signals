@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/market-signals/static/css/main.13a89cb0.css",
+    "main.js": "/market-signals/static/js/main.a0ecbf57.js",
+    "index.html": "/market-signals/index.html",
+    "main.13a89cb0.css.map": "/market-signals/static/css/main.13a89cb0.css.map",
+    "main.a0ecbf57.js.map": "/market-signals/static/js/main.a0ecbf57.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.13a89cb0.css",
+    "static/js/main.a0ecbf57.js"
+  ]
+}
