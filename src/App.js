@@ -22,6 +22,7 @@ const App = () => {
         return;
     }
 
+    console.log('🚀 Starting data fetch...', { timeFrame, customStartDate, customEndDate });
     setIsLoading(true);
     setError(null);
     setHistoricalSignals([]);
@@ -67,15 +68,17 @@ const App = () => {
 
     // Try multiple CORS proxies as fallback
     const proxyUrls = [
+      'https://api.codetabs.com/v1/proxy/?quest=', // Use trailing slash - this one works!
       'https://corsproxy.io/?',
-      'https://api.codetabs.com/v1/proxy?quest=',
       'https://proxy.cors.sh/?'
     ];
 
     // Helper function to try fetching with fallback proxies
     const fetchWithFallback = async (url, proxyIndex = 0) => {
       if (proxyIndex >= proxyUrls.length) {
-        throw new Error('All CORS proxy attempts failed');
+        const errorMsg = 'All CORS proxy attempts failed';
+        console.error('❌', errorMsg);
+        throw new Error(errorMsg);
       }
 
       let proxyUrl = proxyUrls[proxyIndex];
@@ -87,6 +90,7 @@ const App = () => {
       } else if (proxyUrl.includes('corsproxy.io')) {
         fullUrl = proxyUrl + encodeURIComponent(url);
       } else if (proxyUrl.includes('codetabs.com')) {
+        // codetabs.com requires trailing slash in path - use /?quest= format
         fullUrl = proxyUrl + encodeURIComponent(url);
       } else if (proxyUrl.includes('cors.sh')) {
         fullUrl = proxyUrl + encodeURIComponent(url);
@@ -94,10 +98,14 @@ const App = () => {
         fullUrl = proxyUrl + url;
       }
 
+      console.log(`🔄 Attempting proxy ${proxyIndex + 1}/${proxyUrls.length}: ${proxyUrl.split('/')[2]}`);
+      console.log(`📡 Full URL:`, fullUrl.substring(0, 100) + '...');
+
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
         
+        const startTime = Date.now();
         const response = await fetch(fullUrl, {
           method: 'GET',
           headers: {
@@ -105,32 +113,71 @@ const App = () => {
           },
           signal: controller.signal
         });
+        const duration = Date.now() - startTime;
         
         clearTimeout(timeoutId);
+        
+        console.log(`✅ Proxy ${proxyIndex + 1} response: ${response.status} ${response.statusText} (${duration}ms)`);
+        
         if (!response.ok) {
-          throw new Error(`Proxy ${proxyIndex} returned ${response.status}`);
+          throw new Error(`Proxy ${proxyIndex} returned ${response.status} ${response.statusText}`);
         }
         return response;
       } catch (error) {
-        // Catch network errors, CORS errors, timeouts, etc.
+        const errorDetails = {
+          proxy: proxyUrl.split('/')[2],
+          error: error.name,
+          message: error.message,
+          type: error.name === 'AbortError' ? 'Timeout' : error.message.includes('CORS') ? 'CORS' : 'Network'
+        };
+        
+        console.warn(`⚠️  Proxy ${proxyIndex + 1} failed:`, errorDetails);
+        
         // Try next proxy
         if (proxyIndex + 1 < proxyUrls.length) {
+          console.log(`⏭️  Trying next proxy...`);
           return fetchWithFallback(url, proxyIndex + 1);
         } else {
           // All proxies failed
-          throw new Error(`All CORS proxy attempts failed. Last error: ${error.message}`);
+          const finalError = `All CORS proxy attempts failed. Errors: ${JSON.stringify(errorDetails, null, 2)}`;
+          console.error('❌', finalError);
+          throw new Error(finalError);
         }
       }
     };
 
     try {
+      console.log('📊 Fetching data for:', {
+        SPX: originalSpxUrl.substring(0, 80) + '...',
+        VIX: originalVixUrl.substring(0, 80) + '...'
+      });
+      
       const [spxResponse, vixResponse] = await Promise.all([
-        fetchWithFallback(originalSpxUrl),
-        fetchWithFallback(originalVixUrl)
+        fetchWithFallback(originalSpxUrl).catch(err => {
+          console.error('❌ SPX fetch failed:', err);
+          throw err;
+        }),
+        fetchWithFallback(originalVixUrl).catch(err => {
+          console.error('❌ VIX fetch failed:', err);
+          throw err;
+        })
       ]);
+      
+      console.log('✅ Both requests completed successfully');
 
-      const spxJson = await spxResponse.json();
-      const vixJson = await vixResponse.json();
+      // Handle text/plain responses from codetabs.com proxy (it returns JSON as text/plain)
+      const spxText = await spxResponse.text();
+      const vixText = await vixResponse.text();
+      
+      let spxJson, vixJson;
+      try {
+        spxJson = JSON.parse(spxText);
+        vixJson = JSON.parse(vixText);
+      } catch (parseError) {
+        // If parsing fails, throw the error
+        console.error('❌ Failed to parse JSON response:', parseError.message);
+        throw new Error(`Failed to parse JSON response: ${parseError.message}`);
+      }
 
       // --- Parse Yahoo Finance data structure ---
       const parseYahooData = (jsonData) => {
