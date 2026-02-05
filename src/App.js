@@ -68,8 +68,8 @@ const App = () => {
     // Try multiple CORS proxies as fallback
     const proxyUrls = [
       'https://corsproxy.io/?',
-      'https://api.allorigins.win/raw?url=',
-      'https://api.codetabs.com/v1/proxy?quest='
+      'https://api.codetabs.com/v1/proxy?quest=',
+      'https://proxy.cors.sh/?'
     ];
 
     // Helper function to try fetching with fallback proxies
@@ -88,19 +88,38 @@ const App = () => {
         fullUrl = proxyUrl + encodeURIComponent(url);
       } else if (proxyUrl.includes('codetabs.com')) {
         fullUrl = proxyUrl + encodeURIComponent(url);
+      } else if (proxyUrl.includes('cors.sh')) {
+        fullUrl = proxyUrl + encodeURIComponent(url);
       } else {
         fullUrl = proxyUrl + url;
       }
 
       try {
-        const response = await fetch(fullUrl);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        const response = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
         if (!response.ok) {
           throw new Error(`Proxy ${proxyIndex} returned ${response.status}`);
         }
         return response;
       } catch (error) {
+        // Catch network errors, CORS errors, timeouts, etc.
         // Try next proxy
-        return fetchWithFallback(url, proxyIndex + 1);
+        if (proxyIndex + 1 < proxyUrls.length) {
+          return fetchWithFallback(url, proxyIndex + 1);
+        } else {
+          // All proxies failed
+          throw new Error(`All CORS proxy attempts failed. Last error: ${error.message}`);
+        }
       }
     };
 
