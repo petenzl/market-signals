@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/sp500-vix-analyzer/static/css/main.13a89cb0.css",
+    "main.js": "/sp500-vix-analyzer/static/js/main.a0ecbf57.js",
+    "index.html": "/sp500-vix-analyzer/index.html",
+    "main.13a89cb0.css.map": "/sp500-vix-analyzer/static/css/main.13a89cb0.css.map",
+    "main.a0ecbf57.js.map": "/sp500-vix-analyzer/static/js/main.a0ecbf57.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.13a89cb0.css",
+    "static/js/main.a0ecbf57.js"
+  ]
+}
