@@ -29,7 +29,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "monitor": "node monitor-browser.js"
   },
   "keywords": [
     "sp500",
@@ -52,7 +53,8 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "gh-pages": "^6.1.1"
+    "gh-pages": "^6.1.1",
+    "puppeteer": "^24.15.0"
   },
   "eslintConfig": {
     "extends": [
