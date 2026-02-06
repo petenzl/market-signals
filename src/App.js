@@ -68,9 +68,10 @@ const App = () => {
 
     // Try multiple CORS proxies as fallback
     const proxyUrls = [
-      'https://api.codetabs.com/v1/proxy/?quest=', // Use trailing slash - this one works!
-      'https://corsproxy.io/?',
-      'https://proxy.cors.sh/?'
+      'https://market-signals-proxy.vercel.app/api/proxy?url=', // Your own backend proxy (no rate limits!)
+      'https://api.codetabs.com/v1/proxy/?quest=', // Fallback (rate-limited)
+      'https://corsproxy.io/?', // Fallback (blocked from GitHub Pages)
+      'https://proxy.cors.sh/?' // Last resort
     ];
 
     // Helper function to try fetching with fallback proxies
@@ -85,7 +86,10 @@ const App = () => {
       let fullUrl;
       
       // Handle different proxy URL formats
-      if (proxyUrl.includes('allorigins.win')) {
+      if (proxyUrl.includes('vercel.app') || proxyUrl.includes('netlify.app') || proxyUrl.includes('railway.app')) {
+        // Backend proxy uses ?url= parameter
+        fullUrl = proxyUrl + encodeURIComponent(url);
+      } else if (proxyUrl.includes('allorigins.win')) {
         fullUrl = proxyUrl + encodeURIComponent(url);
       } else if (proxyUrl.includes('corsproxy.io')) {
         fullUrl = proxyUrl + encodeURIComponent(url);
