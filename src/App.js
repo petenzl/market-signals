@@ -169,12 +169,29 @@ const App = () => {
       const spxText = await spxResponse.text();
       const vixText = await vixResponse.text();
       
+      // Check if responses are valid JSON (start with { or [)
+      const isJson = (text) => {
+        const trimmed = text.trim();
+        return trimmed.startsWith('{') || trimmed.startsWith('[');
+      };
+      
+      // Log first 200 chars of response for debugging if not JSON
+      if (!isJson(spxText)) {
+        console.warn('⚠️  SPX response is not JSON. First 200 chars:', spxText.substring(0, 200));
+      }
+      if (!isJson(vixText)) {
+        console.warn('⚠️  VIX response is not JSON. First 200 chars:', vixText.substring(0, 200));
+      }
+      
       let spxJson, vixJson;
       try {
+        if (!isJson(spxText) || !isJson(vixText)) {
+          throw new Error(`Proxy returned non-JSON response. SPX starts with: "${spxText.substring(0, 50)}...", VIX starts with: "${vixText.substring(0, 50)}..."`);
+        }
         spxJson = JSON.parse(spxText);
         vixJson = JSON.parse(vixText);
       } catch (parseError) {
-        // If parsing fails, throw the error
+        // If parsing fails, throw the error with more context
         console.error('❌ Failed to parse JSON response:', parseError.message);
         throw new Error(`Failed to parse JSON response: ${parseError.message}`);
       }
